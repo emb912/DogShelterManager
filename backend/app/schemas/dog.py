@@ -1,8 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import date
-from typing import Optional, List
+from typing import Optional
 from ..models.dog import DogSize, DogStatus
-from .dog_history import DogHistory
 
 class DogBase(BaseModel):
     name: str
@@ -31,6 +30,3 @@ class Dog(DogBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
-
-class DogWithHistory(Dog):
-    history: List[DogHistory]

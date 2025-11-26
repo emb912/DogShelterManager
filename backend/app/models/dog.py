@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Date, Enum, Boolean
-from sqlalchemy.orm import relationship
 from ..database import Base
 import enum
 
@@ -26,4 +25,3 @@ class Dog(Base):
     released_date = Column(Date)
     status = Column(Enum(DogStatus), nullable=False, default=DogStatus.arrived)
 
-    history = relationship("DogHistory", back_populates="dog", cascade="all, delete-orphan")

@@ -1,14 +1,6 @@
-from sqlalchemy.orm import Session
 from .. import models
 from ..schemas.dog import DogCreate, DogUpdate
-from ..utils.change_detector import detect_changes
-from ..schemas.dog_history import DogHistoryCreate
-from .dog_history import create_history_record
-from ..websocket_manager import manager
-from ..models.dog import Dog, DogStatus
 from sqlalchemy import func
-import anyio
-
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
@@ -77,14 +69,14 @@ def create_dog(db: Session, dog: DogCreate):
     db.commit()
     db.refresh(db_dog)
 
-    anyio.from_thread.run(manager.broadcast, get_dog_stats(db))
-
     return db_dog
 
 def update_dog(db: Session, dog_id: int, dog: DogUpdate):
     db_dog = get_dog(db, dog_id)
+    if not db_dog:
+        return None
+        
     update_data = dog.model_dump(exclude_unset=True)
-    changes = detect_changes(db_dog, update_data)
 
     for key, value in update_data.items():
         setattr(db_dog, key, value)
@@ -92,24 +84,15 @@ def update_dog(db: Session, dog_id: int, dog: DogUpdate):
     db.commit()
     db.refresh(db_dog)
 
-    for change in changes:
-        record = DogHistoryCreate(
-            dog_id=dog_id,
-            field_name=change["field_name"],
-            old_value=change["old_value"],
-            new_value=change["new_value"]
-        )
-        create_history_record(db, record)
-    anyio.from_thread.run(manager.broadcast, get_dog_stats(db))
-
     return db_dog
 
 def delete_dog(db: Session, dog_id: int):
     db_dog = get_dog(db, dog_id)
-    db.delete(db_dog)
-    db.commit()
-    anyio.from_thread.run(manager.broadcast, get_dog_stats(db))
-
+    if db_dog:
+        db.delete(db_dog)
+        db.commit()
+        return True
+    return False
 
 def get_dog_stats(db: Session) -> dict:
     """
@@ -131,9 +114,3 @@ def get_dog_stats(db: Session) -> dict:
         "all_dogs_total": total
     }
 
-
-def get_dog_with_history(db: Session, dog_id: int):
-    dog = db.query(Dog).filter(Dog.id == dog_id).first()
-    if not dog:
-        return None
-    return dog

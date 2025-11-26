@@ -1,14 +1,19 @@
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..crud import dog as crud
 from ..models import DogSize, DogStatus
-from ..schemas.dog import DogCreate, DogUpdate, Dog, DogWithHistory
+from ..schemas.dog import DogCreate, DogUpdate, Dog
 from typing import List
+from ..models.dog import Dog as DogModel
+from ..websocket_manager import manager
 
 router = APIRouter(prefix="/dogs", tags=["dogs"])
 
+async def broadcast_stats(db: Session):
+    stats = crud.get_dog_stats(db)
+    await manager.broadcast(stats)
 
 @router.get("/", response_model=List[Dog])
 def list_dogs(
@@ -40,27 +45,30 @@ def list_dogs(
         sort_order=sort_order
     )
 
-
 @router.get("/{dog_id}", response_model=Dog)
 def get_one_dog(dog_id: int, db: Session = Depends(get_db)):
     return crud.get_dog(db, dog_id)
 
 @router.post("/", response_model=Dog)
-def create_one_dog(dog: DogCreate, db: Session = Depends(get_db)):
-    return crud.create_dog(db, dog)
+def create_one_dog(dog: DogCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    new_dog = crud.create_dog(db, dog)
+    background_tasks.add_task(broadcast_stats, db)
+    return new_dog
 
 @router.put("/{dog_id}", response_model=Dog)
-def update_dog(dog_id: int, dog: DogUpdate, db: Session = Depends(get_db)):
-    return crud.update_dog(db, dog_id, dog)
+def update_dog(dog_id: int, dog: DogUpdate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    updated_dog = crud.update_dog(db, dog_id, dog)
+    if not updated_dog:
+        raise HTTPException(status_code=404, detail="Dog not found")
+    background_tasks.add_task(broadcast_stats, db)
+    return updated_dog
 
 @router.delete("/{dog_id}")
-def delete_one_dog(dog_id: int, db: Session = Depends(get_db)):
-    crud.delete_dog(db, dog_id)
+def delete_one_dog(dog_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    success = crud.delete_dog(db, dog_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Dog not found")
+    background_tasks.add_task(broadcast_stats, db)
     return {"status": "deleted"}
 
-@router.get("/{dog_id}/details", response_model=DogWithHistory)
-def get_dog_details(dog_id: int, db: Session = Depends(get_db)):
-    dog = crud.get_dog_with_history(db, dog_id)
-    if not dog:
-        raise HTTPException(status_code=404, detail="Dog not found")
-    return dog
+
