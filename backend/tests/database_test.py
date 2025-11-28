@@ -16,8 +16,6 @@ TestingSessionLocal = sessionmaker(bind=engine)
 
 def override_get_db():
     db = TestingSessionLocal()
-    print("TEST DB OVERRIDE WORKS")
-
     try:
         yield db
     finally:

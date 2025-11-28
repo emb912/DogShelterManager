@@ -47,7 +47,10 @@ def list_dogs(
 
 @router.get("/{dog_id}", response_model=Dog)
 def get_one_dog(dog_id: int, db: Session = Depends(get_db)):
-    return crud.get_dog(db, dog_id)
+    dog = crud.get_dog(db, dog_id)
+    if dog is None:
+        raise HTTPException(status_code=404, detail="Dog not found")
+    return dog
 
 @router.post("/", response_model=Dog)
 def create_one_dog(dog: DogCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
