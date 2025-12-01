@@ -11,6 +11,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Klasa bazowa dla modeli ORM
 Base = declarative_base()
+Base.metadata.create_all(bind=engine)
 
 def get_db() -> Generator[Session, None, None]:
     """Generator sesji bazy danych dla dependency injection FastAPI.
