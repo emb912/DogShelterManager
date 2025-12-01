@@ -78,7 +78,7 @@ cd DogShelterManager
 - utwórz bazę danych dogsheltermanager w PostgreSQL
 - wprowadź konieczne zmiany w pliku backend/.env
 ```
-DATABASE_URL=postgresql+asyncpg://UZYTKOWNIK:HASLO@localhost:5432/dogsheltermanager
+DATABASE_URL=postgresql://UZYTKOWNIK:HASLO@localhost:5432/dogsheltermanager
 ```
 ### 3. Utworzenie środowiska wirtualnego i instalacja zależności
 ```
