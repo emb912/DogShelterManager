@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from .routers import dog, ws
 from fastapi.middleware.cors import CORSMiddleware
+from .database import engine, Base
+
+# konfiguracja i inicjalizacja bazy danych
+Base.metadata.create_all(bind=engine)
 
 # Inicjalizacja aplikacji FastAPI
 app = FastAPI(
