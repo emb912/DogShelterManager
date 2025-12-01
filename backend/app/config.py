@@ -1,9 +1,13 @@
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Settings(BaseSettings):
+    """Klasa ustawień aplikacji.
+       Przechowuje adresy URL do baz danych produkcyjnej i testowej.
+    """
     DATABASE_URL: str
-
-    model_config = ConfigDict(env_file=".env")
+    TEST_DATABASE_URL: str | None = None
 
 settings = Settings()

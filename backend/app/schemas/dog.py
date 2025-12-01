@@ -4,6 +4,20 @@ from typing import Optional
 from ..models.dog import DogSize, DogStatus
 
 class DogBase(BaseModel):
+    """Bazowy schemat Pydantic dla psa.
+    
+    Zawiera wszystkie wspólne pola używane w różnych operacjach.
+    
+    Attributes:
+        name: Imię psa.
+        size: Rozmiar psa (small, medium, large).
+        birth_date: Data urodzenia psa (opcjonalne).
+        sex: Płeć psa (opcjonalne).
+        neutered: Czy pies jest wysterylizowany/wykastrowany.
+        admitted_date: Data przyjęcia do schroniska.
+        released_date: Data wypuszczenia ze schroniska (opcjonalne).
+        status: Status psa (arrived, adopted, returned).
+    """
     name: str
     size: DogSize
     birth_date: Optional[date]
@@ -14,9 +28,29 @@ class DogBase(BaseModel):
     status: DogStatus
 
 class DogCreate(DogBase):
+    """Schemat Pydantic dla tworzenia nowego psa.
+    
+    Dziedziczy wszystkie pola z DogBase.
+    Używany przy operacji POST /dogs/.
+    """
     pass
 
 class DogUpdate(BaseModel):
+    """Schemat Pydantic dla aktualizacji istniejącego psa.
+    
+    Wszystkie pola są opcjonalne, umożliwiając częściową aktualizację.
+    Używany przy operacji PUT /dogs/{dog_id}.
+    
+    Attributes:
+        name: Nowe imię psa (opcjonalne).
+        size: Nowy rozmiar psa (opcjonalne).
+        birth_date: Nowa data urodzenia (opcjonalne).
+        sex: Nowa płeć (opcjonalne).
+        neutered: Nowy status sterylizacji (opcjonalne).
+        admitted_date: Nowa data przyjęcia (opcjonalne).
+        released_date: Nowa data wypuszczenia (opcjonalne).
+        status: Nowy status (opcjonalne).
+    """
     name: Optional[str] = None
     size: Optional[DogSize] = None
     birth_date: Optional[date] = None
@@ -27,6 +61,17 @@ class DogUpdate(BaseModel):
     status: Optional[DogStatus] = None
 
 class Dog(DogBase):
+    """Schemat Pydantic dla pełnej reprezentacji psa.
+    
+    Rozszerza DogBase o pole ID.
+    Używany jako response model w endpointach API.
+    
+    Attributes:
+        id: Unikalny identyfikator psa.
+        
+    Config:
+        from_attributes: Pozwala na tworzenie obiektu z modelu ORM.
+    """
     id: int
 
     model_config = ConfigDict(from_attributes=True)

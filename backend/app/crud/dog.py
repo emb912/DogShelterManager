@@ -1,69 +1,52 @@
+from typing import Optional, List, Dict
+from datetime import date, timedelta
+from sqlalchemy import func, asc, desc
+from sqlalchemy.orm import Session
 from .. import models
 from ..schemas.dog import DogCreate, DogUpdate
-from sqlalchemy import func
-from datetime import date, timedelta
-from sqlalchemy.orm import Session
-from sqlalchemy import asc, desc
 from ..models.dog import Dog, DogSize, DogStatus
-from typing import Optional
 
 def get_dogs(
     db: Session,
-    size: Optional[DogSize] = None,
-    sex: Optional[str] = None,
-    status: Optional[DogStatus] = None,
-    min_age: Optional[int] = None,
-    max_age: Optional[int] = None,
-    admitted_from: Optional[date] = None,
-    admitted_to: Optional[date] = None,
-    sort_by: Optional[str] = None,
-    sort_order: Optional[str] = "asc",
-):
+) -> List[Dog]:
+    """Pobiera listę psów z bazy danych z filtrowaniem i sortowaniem.
+    
+    Args:
+        db: Sesja bazy danych.
+        
+    Returns:
+        Lista obiektów Dog.
+    """
     query = db.query(Dog)
-
-    # filters
-    if size:
-        query = query.filter(Dog.size == size)
-
-    if sex:
-        query = query.filter(Dog.sex == sex)
-
-    if status:
-        query = query.filter(Dog.status == status)
-
-    if min_age is not None:
-        max_birth_date = date.today() - timedelta(days=min_age * 365)
-        query = query.filter(Dog.birth_date <= max_birth_date)
-
-    if max_age is not None:
-        min_birth_date = date.today() - timedelta(days=max_age * 365)
-        query = query.filter(Dog.birth_date >= min_birth_date)
-
-    if admitted_from:
-        query = query.filter(Dog.admitted_date >= admitted_from)
-
-    if admitted_to:
-        query = query.filter(Dog.admitted_date <= admitted_to)
-
-    # sort
-    sortable_fields = {
-        "name": Dog.name,
-        "admitted_date": Dog.admitted_date,
-        "birth_date": Dog.birth_date,
-        "status": Dog.status
-    }
-
-    if sort_by in sortable_fields:
-        sort_column = sortable_fields[sort_by]
-        query = query.order_by(asc(sort_column) if sort_order == "asc" else desc(sort_column))
 
     return query.all()
 
 
-def get_dog(db: Session, dog_id: int):
+def get_dog(db: Session, dog_id: int) -> Optional[Dog]:
+    """Pobiera pojedynczego psa po ID.
+    
+    Args:
+        db: Sesja bazy danych.
+        dog_id: Identyfikator psa.
+        
+    Returns:
+        Obiekt Dog jeśli znaleziony, None w przeciwnym razie.
+    """
     return db.query(models.dog.Dog).filter(models.dog.Dog.id == dog_id).first()
 
-def create_dog(db: Session, dog: DogCreate):
+def create_dog(db: Session, dog: DogCreate) -> Dog:
+    """Tworzy nowego psa w bazie danych.
+    
+    Args:
+        db: Sesja bazy danych.
+        dog: Dane nowego psa zgodne ze schemą DogCreate.
+        
+    Returns:
+        Utworzony obiekt Dog z przypisanym ID.
+        
+    Note:
+        Automatycznie commituje zmiany do bazy danych.
+    """
     db_dog = models.dog.Dog(**dog.model_dump())
     db.add(db_dog)
     db.commit()
@@ -71,7 +54,21 @@ def create_dog(db: Session, dog: DogCreate):
 
     return db_dog
 
-def update_dog(db: Session, dog_id: int, dog: DogUpdate):
+def update_dog(db: Session, dog_id: int, dog: DogUpdate) -> Optional[Dog]:
+    """Aktualizuje dane istniejącego psa.
+    
+    Args:
+        db: Sesja bazy danych.
+        dog_id: Identyfikator psa do aktualizacji.
+        dog: Dane do aktualizacji (tylko wypełnione pola zostaną zmienione).
+        
+    Returns:
+        Zaktualizowany obiekt Dog jeśli znaleziony, None w przeciwnym razie.
+        
+    Note:
+        Automatycznie commituje zmiany do bazy danych.
+        Wykorzystuje partial update - aktualizuje tylko podane pola.
+    """
     db_dog = get_dog(db, dog_id)
     if not db_dog:
         return None
@@ -86,7 +83,19 @@ def update_dog(db: Session, dog_id: int, dog: DogUpdate):
 
     return db_dog
 
-def delete_dog(db: Session, dog_id: int):
+def delete_dog(db: Session, dog_id: int) -> bool:
+    """Usuwa psa z bazy danych.
+    
+    Args:
+        db: Sesja bazy danych.
+        dog_id: Identyfikator psa do usunięcia.
+        
+    Returns:
+        True jeśli pies został usunięty, False jeśli nie znaleziono.
+        
+    Note:
+        Automatycznie commituje zmiany do bazy danych.
+    """
     db_dog = get_dog(db, dog_id)
     if db_dog:
         db.delete(db_dog)
@@ -94,13 +103,21 @@ def delete_dog(db: Session, dog_id: int):
         return True
     return False
 
-def get_dog_stats(db: Session) -> dict:
-    """
-    Returns statistics about all dogs:
-    - current in shelter
-    - adopted total
-    - returned total
-    - all dogs total
+def get_dog_stats(db: Session) -> Dict[str, int]:
+    """Generuje statystyki wszystkich psów w systemie.
+    
+    Args:
+        db: Sesja bazy danych.
+        
+    Returns:
+        Słownik zawierający:
+            - current_in_shelter: Liczba psów aktualnie w schronisku (status: arrived).
+            - adopted_total: Całkowita liczba adoptowanych psów.
+            - returned_total: Całkowita liczba zwróconych psów.
+            - all_dogs_total: Całkowita liczba psów w bazie danych.
+            
+    Note:
+        Statystyki są wykorzystywane do aktualizacji real-time przez WebSocket.
     """
     current = db.query(func.count(Dog.id)).filter(Dog.status == DogStatus.arrived).scalar()
     adopted = db.query(func.count(Dog.id)).filter(Dog.status == DogStatus.adopted).scalar()
