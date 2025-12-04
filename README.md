@@ -16,7 +16,7 @@ Backend:
 - testy jednostkowe: pytest
   
 Frontend:
-- Next.js
+- Vite
 - TypeScript
 - Tailwind CSS
 - React
