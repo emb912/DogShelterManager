@@ -17,8 +17,6 @@ def run_before_each_test():
     setup_test_db()
 
 
-# ============= TESTY TWORZENIA PSÓW =============
-
 def test_create_dog():
     """Test podstawowego tworzenia psa"""
     dog_data = {
@@ -94,9 +92,6 @@ def test_create_dog_invalid_status():
     response = client.post("/dogs/", json=dog_data)
     assert response.status_code == 422
 
-
-# ============= TESTY POBIERANIA PSÓW =============
-
 def test_get_dogs_list():
     """Test pobierania listy psów"""
     test_create_dog()
@@ -146,8 +141,6 @@ def test_get_non_existent_dog():
     # zwraca None lub 404
     assert response.status_code in [200, 404] or response.json() is None
 
-
-# ============= TESTY AKTUALIZACJI =============
 
 def test_update_dog():
     """Test podstawowej aktualizacji psa"""

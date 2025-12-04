@@ -1,12 +1,9 @@
-from datetime import date
 from typing import List, Dict
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..crud import dog as crud
-from ..models import DogSize, DogStatus
 from ..schemas.dog import DogCreate, DogUpdate, Dog
-from ..models.dog import Dog as DogModel
 from ..websocket_manager import manager
 
 router = APIRouter(prefix="/dogs", tags=["dogs"])
@@ -26,7 +23,7 @@ async def broadcast_stats(db: Session) -> None:
 def list_dogs(
     db: Session = Depends(get_db)
 ) -> List[Dog]:
-    """Pobiera listę psów z opcjonalnym filtrowaniem i sortowaniem.
+    """Pobiera listę psów.
     
     Args:
         db: Sesja bazy danych (dependency injection).
@@ -34,9 +31,7 @@ def list_dogs(
     Returns:
         Lista psów spełniających ze schroniska.
     """
-    return crud.get_dogs(
-        db
-    )
+    return crud.get_dogs(db)
 
 @router.get("/{dog_id}", response_model=Dog)
 def get_one_dog(dog_id: int, db: Session = Depends(get_db)) -> Dog:

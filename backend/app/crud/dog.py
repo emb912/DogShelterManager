@@ -1,15 +1,14 @@
 from typing import Optional, List, Dict
-from datetime import date, timedelta
-from sqlalchemy import func, asc, desc
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from .. import models
 from ..schemas.dog import DogCreate, DogUpdate
-from ..models.dog import Dog, DogSize, DogStatus
+from ..models.dog import Dog, DogStatus
 
 def get_dogs(
     db: Session,
 ) -> List[Dog]:
-    """Pobiera listę psów z bazy danych z filtrowaniem i sortowaniem.
+    """Pobiera listę psów z bazy danych.
     
     Args:
         db: Sesja bazy danych.
@@ -39,7 +38,7 @@ def create_dog(db: Session, dog: DogCreate) -> Dog:
     
     Args:
         db: Sesja bazy danych.
-        dog: Dane nowego psa zgodne ze schemą DogCreate.
+        dog: Dane nowego psa zgodne ze schematem DogCreate.
         
     Returns:
         Utworzony obiekt Dog z przypisanym ID.
