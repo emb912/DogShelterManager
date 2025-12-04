@@ -42,6 +42,7 @@ export const DogForm: React.FC<DogFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<DogCreate>(initialFormState);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -61,10 +62,12 @@ export const DogForm: React.FC<DogFormProps> = ({
     e.preventDefault();
     setLoading(true);
     try {
+      setError(null);
       await onSubmit(formData);
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      setError("Wystąpił błąd, sprawdź poprawność danych.");
     } finally {
       setLoading(false);
     }
@@ -84,6 +87,7 @@ export const DogForm: React.FC<DogFormProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Imię
