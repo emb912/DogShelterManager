@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from datetime import date
 from typing import Optional
 from ..models.dog import DogSize, DogStatus
@@ -26,6 +26,15 @@ class DogBase(BaseModel):
     admitted_date: date
     released_date: Optional[date]
     status: DogStatus
+
+    @field_validator('birth_date', 'admitted_date', 'released_date')
+    @classmethod
+    def date_not_in_future(cls, v: Optional[date], info) -> Optional[date]:
+        """Waliduje, że data nie jest z przyszłości."""
+        if v is not None and v > date.today():
+            field_name = info.field_name if hasattr(info, 'field_name') else str(info)
+            raise ValueError(f"{field_name.replace('_', ' ').capitalize()} nie może być z przyszłości.")
+        return v
 
 class DogCreate(DogBase):
     """Schemat Pydantic dla tworzenia nowego psa.
@@ -59,6 +68,15 @@ class DogUpdate(BaseModel):
     admitted_date: Optional[date] = None
     released_date: Optional[date] = None
     status: Optional[DogStatus] = None
+
+    @field_validator('birth_date', 'admitted_date', 'released_date')
+    @classmethod
+    def date_not_in_future(cls, v: Optional[date], info) -> Optional[date]:
+        """Waliduje, że data nie jest z przyszłości."""
+        if v is not None and v > date.today():
+            field_name = info.field_name if hasattr(info, 'field_name') else str(info)
+            raise ValueError(f"{field_name.replace('_', ' ').capitalize()} nie może być z przyszłości.")
+        return v
 
 class Dog(DogBase):
     """Schemat Pydantic dla pełnej reprezentacji psa.
