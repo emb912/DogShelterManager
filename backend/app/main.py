@@ -1,15 +1,16 @@
 from fastapi import FastAPI
-from .routers import dog, ws
+from .routers import dog, cat, ws
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
+from .models import dog as dog_model, cat as cat_model
 
 # konfiguracja i inicjalizacja bazy danych
 Base.metadata.create_all(bind=engine)
 
 # Inicjalizacja aplikacji FastAPI
 app = FastAPI(
-    title="Dog Shelter Manager API",
-    description="REST API do zarządzania psami w schronisku",
+    title="Animal Shelter Manager API",
+    description="REST API do zarządzania psami i kotami w schronisku",
     version="1.0.0"
 )
 
@@ -32,5 +33,6 @@ app.add_middleware(
 
 # Rejestracja routerów
 app.include_router(dog.router)
+app.include_router(cat.router)
 app.include_router(ws.router)
 

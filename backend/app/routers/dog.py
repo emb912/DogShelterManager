@@ -17,7 +17,7 @@ async def broadcast_stats(db: Session) -> None:
         db: Sesja bazy danych.
     """
     stats = crud.get_dog_stats(db)
-    await manager.broadcast(stats)
+    await manager.broadcast({"type": "dog_stats", **stats})
 
 @router.get("/", response_model=List[Dog])
 def list_dogs(
