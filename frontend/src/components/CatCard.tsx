@@ -1,50 +1,51 @@
 import React from "react";
-import { DogStatus, DogSize, type Dog } from "../types";
+import { CatStatus, CatSize, type Cat } from "../types";
 import {
   Calendar,
-  Dog as DogIcon,
+  Cat as CatIcon,
   Activity,
   Syringe,
   Pencil,
   Trash2,
+  Home,
 } from "lucide-react";
 import { format } from "date-fns";
 
-interface DogCardProps {
-  dog: Dog;
-  onEdit: (dog: Dog) => void;
+interface CatCardProps {
+  cat: Cat;
+  onEdit: (cat: Cat) => void;
   onDelete: (id: number) => void;
 }
 
 const statusColors = {
-  [DogStatus.arrived]: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  [DogStatus.adopted]: "bg-rose-100 text-rose-600 border-rose-200",
-  [DogStatus.returned]: "bg-amber-100 text-amber-800 border-amber-200",
+  [CatStatus.arrived]: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  [CatStatus.adopted]: "bg-rose-100 text-rose-600 border-rose-200",
+  [CatStatus.returned]: "bg-amber-100 text-amber-800 border-amber-200",
 };
 
 const sizeLabels = {
-  [DogSize.small]: "Mały",
-  [DogSize.medium]: "Średni",
-  [DogSize.large]: "Duży",
+  [CatSize.small]: "Mały",
+  [CatSize.medium]: "Średni",
+  [CatSize.large]: "Duży",
 };
 
-export const DogCard: React.FC<DogCardProps> = ({ dog, onEdit, onDelete }) => {
+export const CatCard: React.FC<CatCardProps> = ({ cat, onEdit, onDelete }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-100 flex flex-col">
       <div className="p-5 flex-1">
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <DogIcon className="w-5 h-5 text-lime-600" />
-            {dog.name}
+            <CatIcon className="w-5 h-5 text-purple-600" />
+            {cat.name}
           </h3>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-              statusColors[dog.status]
+              statusColors[cat.status]
             }`}
           >
-            {dog.status === DogStatus.arrived
+            {cat.status === CatStatus.arrived
               ? "W schronisku"
-              : dog.status === DogStatus.adopted
+              : cat.status === CatStatus.adopted
               ? "Adoptowany"
               : "Zwrócony"}
           </span>
@@ -56,7 +57,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onEdit, onDelete }) => {
             <span>
               Rozmiar:{" "}
               <span className="font-medium text-gray-800">
-                {sizeLabels[dog.size]}
+                {sizeLabels[cat.size]}
               </span>
             </span>
           </div>
@@ -66,18 +67,18 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onEdit, onDelete }) => {
             <span>
               Przyjęty:{" "}
               <span className="font-medium text-gray-800">
-                {format(new Date(dog.admitted_date), "dd.MM.yyyy")}
+                {format(new Date(cat.admitted_date), "dd.MM.yyyy")}
               </span>
             </span>
           </div>
 
-          {dog.birth_date && (
+          {cat.birth_date && (
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-400" />
               <span>
                 Urodzony:{" "}
                 <span className="font-medium text-gray-800">
-                  {format(new Date(dog.birth_date), "dd.MM.yyyy")}
+                  {format(new Date(cat.birth_date), "dd.MM.yyyy")}
                 </span>
               </span>
             </div>
@@ -86,13 +87,27 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onEdit, onDelete }) => {
           <div className="flex items-center gap-2">
             <Syringe
               className={`w-4 h-4 ${
-                dog.neutered ? "text-lime-500" : "text-gray-400"
+                cat.neutered ? "text-purple-500" : "text-gray-400"
               }`}
             />
             <span>
               Kastracja:{" "}
               <span className="font-medium text-gray-800">
-                {dog.neutered ? "Tak" : "Nie"}
+                {cat.neutered ? "Tak" : "Nie"}
+              </span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Home
+              className={`w-4 h-4 ${
+                cat.indoor_only ? "text-purple-500" : "text-gray-400"
+              }`}
+            />
+            <span>
+              Tylko dom:{" "}
+              <span className="font-medium text-gray-800">
+                {cat.indoor_only ? "Tak" : "Nie"}
               </span>
             </span>
           </div>
@@ -101,19 +116,19 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onEdit, onDelete }) => {
 
       <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
         <div className="flex gap-2">
-          <span>ID: #{dog.id}</span>
+          <span>ID: #{cat.id}</span>
           <span>•</span>
           <span>
-            {dog.sex === "male"
-              ? "Samiec"
-              : dog.sex === "female"
-              ? "Samica"
+            {cat.sex === "male"
+              ? "Kocur"
+              : cat.sex === "female"
+              ? "Kotka"
               : "Płeć nieznana"}
           </span>
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => onEdit(dog)}
+            onClick={() => onEdit(cat)}
             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="Edytuj"
           >
@@ -121,8 +136,8 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onEdit, onDelete }) => {
           </button>
           <button
             onClick={() => {
-              if (window.confirm("Czy na pewno chcesz usunąć tego psa?")) {
-                onDelete(dog.id);
+              if (window.confirm("Czy na pewno chcesz usunąć tego kota?")) {
+                onDelete(cat.id);
               }
             }}
             className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

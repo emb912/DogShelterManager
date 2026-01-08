@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import type { DogStats } from "../types";
+import type { CatStats } from "../types";
 
-const WS_URL = "ws://localhost:8000/ws/dogs";
+const WS_URL = "ws://localhost:8000/ws/cats";
 
-export const useSocket = () => {
-  const [stats, setStats] = useState<DogStats | null>(null);
+export const useCatSocket = () => {
+  const [stats, setStats] = useState<CatStats | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessageTime, setLastMessageTime] = useState<number>(Date.now());
   const socketRef = useRef<WebSocket | null>(null);
@@ -15,15 +15,15 @@ export const useSocket = () => {
       socketRef.current = ws;
 
       ws.onopen = () => {
-        console.log("Connected to WebSocket");
+        console.log("Connected to Cat WebSocket");
         setIsConnected(true);
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          // Tylko aktualizuj jeśli to statystyki psów (lub brak type dla wstecznej kompatybilności)
-          if (!data.type || data.type === "dog_stats") {
+          // Tylko aktualizuj jeśli to statystyki kotów
+          if (data.type === "cat_stats") {
             setStats(data);
             setLastMessageTime(Date.now());
           }
@@ -33,7 +33,7 @@ export const useSocket = () => {
       };
 
       ws.onclose = () => {
-        console.log("Disconnected from WebSocket");
+        console.log("Disconnected from Cat WebSocket");
         setIsConnected(false);
         // Reconnect after a delay
         setTimeout(connect, 3000);

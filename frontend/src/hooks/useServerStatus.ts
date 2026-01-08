@@ -1,12 +1,11 @@
 import { useEffect, useState, useRef } from "react";
-import type { DogStats } from "../types";
+import type { ServerStatus } from "../types";
 
-const WS_URL = "ws://localhost:8000/ws/dogs";
+const WS_URL = "ws://localhost:8000/ws/status";
 
-export const useSocket = () => {
-  const [stats, setStats] = useState<DogStats | null>(null);
+export const useServerStatus = () => {
+  const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [lastMessageTime, setLastMessageTime] = useState<number>(Date.now());
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -15,17 +14,15 @@ export const useSocket = () => {
       socketRef.current = ws;
 
       ws.onopen = () => {
-        console.log("Connected to WebSocket");
+        console.log("Connected to Server Status WebSocket");
         setIsConnected(true);
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          // Tylko aktualizuj jeśli to statystyki psów (lub brak type dla wstecznej kompatybilności)
-          if (!data.type || data.type === "dog_stats") {
-            setStats(data);
-            setLastMessageTime(Date.now());
+          if (data.type === "server_status") {
+            setServerStatus(data);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -33,7 +30,7 @@ export const useSocket = () => {
       };
 
       ws.onclose = () => {
-        console.log("Disconnected from WebSocket");
+        console.log("Disconnected from Server Status WebSocket");
         setIsConnected(false);
         // Reconnect after a delay
         setTimeout(connect, 3000);
@@ -54,5 +51,12 @@ export const useSocket = () => {
     };
   }, []);
 
-  return { stats, isConnected, lastMessageTime };
+  // Funkcja do żądania odświeżenia statusu
+  const requestStatus = () => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send("get_status");
+    }
+  };
+
+  return { serverStatus, isConnected, requestStatus };
 };
