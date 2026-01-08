@@ -1,9 +1,9 @@
 # DogShelterManager
-System do zarządzania schroniskiem dla psów, który umożliwia monitorowanie wypełnienia schroniska w czasie rzeczywistym.
-Umożliwia dodawanie, edycję, usuwanie psów, a po każdej zmianie wypełnienie schroniska jest aktualizowane za pomocą WebSocketa.
+System do zarządzania schroniskiem dla psów i kotów, który umożliwia monitorowanie wypełnienia schroniska w czasie rzeczywistym.
+Umożliwia dodawanie, edycję, usuwanie zwierząt, a po każdej zmianie wypełnienie schroniska jest aktualizowane za pomocą WebSocketa. Oprócz tego pokazywany jest status serwera i czas ostatniej zmiany od uruchomienia.
 
 ## Funkcjonalności aplikacji
-- operacje CRUD na psach
+- operacje CRUD na zwierzętach
 - status serwera - wyświetlane data ostatniej aktualizacji i status połączenia z serwerem 
 - monitorowanie poziomu wypełnienia schroniska - po każdej aktualizacji, automatycznie jest wysyłany zaktualizowany stan
 - dokumentacja API wygenerowana automatycznie przez Swagger
@@ -33,19 +33,24 @@ DogShelterManager/
 │   │   ├── websocket_manager.py       # Obsługa połączeń WebSocket
 │   │   ├── crud/
 │   │   │   ├── __init__.py            # Inicjalizacja modułu CRUD
+│   │   │   ├── cat.py                 # Operacje CRUD dla modelu kota
 │   │   │   └── dog.py                 # Operacje CRUD dla modelu psa
 │   │   ├── models/
 │   │   │   ├── __init__.py            # Inicjalizacja modułu modeli
+│   │   │   ├── cat.py                 # Definicja modelu ORM kota
 │   │   │   └── dog.py                 # Definicja modelu ORM psa
 │   │   ├── routers/
 │   │   │   ├── __init__.py            # Inicjalizacja modułu routerów
+│   │   │   ├── cat.py                 # Endpointy API dla kotów
 │   │   │   ├── dog.py                 # Endpointy API dla psów
 │   │   │   └── ws.py                  # Endpointy WebSocket
 │   │   ├── schemas/
 │   │   │   ├── __init__.py            # Inicjalizacja modułu schematów
+│   │   │   ├── cat.py                 # Schematy Pydantic dla kotów
 │   │   │   └── dog.py                 # Schematy Pydantic dla psów
 │   └── tests/
 │       ├── database_test.py           # Konfiguracja połączenia testowego z bazą danych
+│       ├── test_cats.py               # Testy endpointów kotów
 │       ├── test_dogs.py               # Testy endpointów psów
 │       └── test_ws.py                 # Testy WebSocket
 ├── frontend/
@@ -55,13 +60,20 @@ DogShelterManager/
 │       ├── App.css                    # Style głównej aplikacji
 │       ├── App.tsx                    # Główny komponent React
 │       ├── api/
+│       │   ├── cats.ts                # Funkcje do komunikacji z API kotów
 │       │   └── dogs.ts                # Funkcje do komunikacji z API psów
 │       ├── components/
+│       │   ├── CatCard.tsx            # Komponent wyświetlający kota
+│       │   ├── CatForm.tsx            # Formularz dodawania/edycji kota
+│       │   ├── CatStatsOverview.tsx   # Komponent statystyk schroniska nt. kotów
 │       │   ├── DogCard.tsx            # Komponent wyświetlający psa
 │       │   ├── DogForm.tsx            # Formularz dodawania/edycji psa
+│       │   ├── ServerStatusPanel.tsx  # Panel z informacjami o statusie serwera
 │       │   └── StatsOverview.tsx      # Komponent statystyk schroniska
 │       ├── hooks/
-│       │   └── useSocket.ts           # Hook do obsługi WebSocket
+│       │   ├── useCatSocket.tsx       # Hook do obsługi WebSocket z danymi o kotach
+│       │   ├── useServerStatus.tsx    # Hook do obsługi WebSocket ze statusem serwera
+│       │   └── useSocket.ts           # Hook do obsługi WebSocket z danymi o psach
 │       ├── index.css                  
 │       ├── main.tsx                   
 │       └── types/
@@ -111,13 +123,19 @@ Dostęp do aplikacji:
 ## Testy aplikacji
 Zestaw testów jednostkowych dla backendu aplikacji Dog Shelter Manager. Testy pokrywają aspekty funkcjonalności API, takie jak: operacje CRUD, filtrowanie, sortowanie, działanie WebSockets oraz walidację danych.
 ### Struktura testów
-1. `test_dogs.py` - Testy podstawowych operacji CRUD
+1. `test_dogs.py` - Testy podstawowych operacji CRUD na psach
 - Testy tworzenia
 - Testy pobierania
 - Testy aktualizacji
 - Testy usuwania
 
-2. `test_ws.py` - Testy WebSocket
+2. `test_cats.py` - Testy podstawowych operacji CRUD na kotach
+- Testy tworzenia
+- Testy pobierania
+- Testy aktualizacji
+- Testy usuwania
+  
+3. `test_ws.py` - Testy WebSocket
 - Podstawowe testy WebSocket
 - Testy aktualizacji przez WebSocket
 
@@ -137,6 +155,7 @@ pytest
 ### Konkretny plik testowy
 ```bash
 pytest tests/test_dogs.py
+pytest tests/test_cats.py
 pytest tests/test_ws.py
 ```
 
